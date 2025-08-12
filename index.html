@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Математика с Алисой 🦄</title>
+    <style>
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            line-height: 1.5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .welcome {
+            color: #ffd700;
+            font-size: 1.3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .difficulty-btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .easy { background: #4ade80; color: white; }
+        .medium { background: #fbbf24; color: white; }
+         .hard { background: #f87171; color: white; }
+         .auto { background: #60a5fa; color: white; }
+        .difficulty-btn.active { transform: scale(1.1); }
+
+        .game-container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: #e5e7eb;
+            height: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            height: 100%;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .star {
+            font-size: 2em;
+            color: #e5e7eb;
+            transition: all 0.3s;
+        }
+
+        .star.filled {
+            color: #fbbf24;
+            animation: starPop 0.5s ease;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .question {
+            font-size: 3em;
+            text-align: center;
+            margin: 30px 0;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 2em;
+            text-align: center;
+            border: 3px solid #e5e7eb;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 5em;
+            z-index: 1000;
+            animation: feedbackPop 1s ease;
+        }
+
+        @keyframes feedbackPop {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); }
+            50% { transform: translate(-50%, -50%) scale(1.2) rotate(10deg); }
+            100% { transform: translate(-50%, -50%) scale(0) rotate(0deg); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #f3f4f6;
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .chest-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .chest-content {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            animation: chestAppear 0.5s ease;
+        }
+
+        @keyframes chestAppear {
+            from { transform: scale(0) rotate(180deg); }
+            to { transform: scale(1) rotate(0deg); }
+        }
+
+        .chest-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .open-chest-btn {
+            padding: 15px 40px;
+            font-size: 1.3em;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .animal-reward {
+            font-size: 6em;
+            animation: animalAppear 1s ease;
+        }
+
+        @keyframes animalAppear {
+            0% { transform: scale(0) rotate(720deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .collection {
+            margin-top: 30px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .collection-title {
+            color: #764ba2;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .animals-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .animal-item {
+            font-size: 2.5em;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .reset-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .reset-btn:hover {
+            background: #dc2626;
+        }
+
+        /* Улучшаем читаемость чисел на iPad и в целом */
+        .question, .answer-input, .stat-value, .progress-fill {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.2px;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .question { font-size: 2.5em; }
+            .answer-input { font-size: 1.5em; }
+        }
+
+        .numpad {
+  position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  width: min(520px, 92vw);
+  background: #fff; border-radius: 18px; padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  box-shadow: 0 22px 50px rgba(0,0,0,.25);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  z-index: 3000;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+.numpad.hidden { display: none; }
+
+.numpad button {
+  font-size: 1.6rem; font-weight: 700; padding: 14px 0;
+  border: 0; border-radius: 14px; background: #f3f4f6; cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0,0,0,.07) inset;
+  transition: transform .06s ease, background .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.numpad button:active { transform: translateY(1px); }
+.numpad button[data-action="clear"] { background: #fee2e2; }
+.numpad button[data-action="back"]  { background: #e5e7eb; }
+.numpad .ok { grid-column: 1 / -1; background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; }
+
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 Математическая Страна 🌟</h1>
+        <div class="welcome">Привет, Алиса! Давай учиться весело! 🦄</div>
+    </div>
+
+    <div class="difficulty-selector">
+        <button class="difficulty-btn auto" onclick="setDifficulty('auto')">🤖 Авто</button>
+        <button class="difficulty-btn easy" onclick="setDifficulty('easy')">🌱 Легко</button>
+        <button class="difficulty-btn medium" onclick="setDifficulty('medium')">🌻 Средне</button>
+        <button class="difficulty-btn hard" onclick="setDifficulty('hard')">🔥 Сложно</button>
+    </div>
+
+    <div class="game-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill">0/10</div>
+        </div>
+
+        <div class="stars" id="stars">
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+        </div>
+
+        <div class="question" id="question">Выбери уровень сложности!</div>
+        
+    
+        
+<!-- поле ответа: отключим системную клаву на тач-устройствах -->
+<input
+  type="text"
+  class="answer-input"
+  id="answerInput"
+  placeholder="Твой ответ"
+  inputmode="none"
+  autocomplete="off"
+  autocorrect="off"
+  spellcheck="false"
+  disabled
+>
+
+<!-- наша цифровая клавиатура -->
+<div id="numpad" class="numpad hidden" aria-hidden="true">
+  <button data-key="1">1</button>
+  <button data-key="2">2</button>
+  <button data-key="3">3</button>
+  <button data-key="4">4</button>
+  <button data-key="5">5</button>
+  <button data-key="6">6</button>
+  <button data-key="7">7</button>
+  <button data-key="8">8</button>
+  <button data-key="9">9</button>
+  <button data-action="clear">C</button>
+  <button data-key="0">0</button>
+  <button data-action="back">⌫</button>
+  <button class="ok" data-action="ok">OK</button>
+</div>
+
+        <button class="submit-btn" id="submitBtn" onclick="checkAnswer()" disabled>Проверить! 🎯</button>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Правильно</div>
+                <div class="stat-value" id="correctCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Всего</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Серия</div>
+                <div class="stat-value" id="streakCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="collection">
+        <div class="collection-title">🏆 Моя коллекция зверушек 🏆</div>
+        <div class="animals-grid" id="animalsGrid"></div>
+        <button class="reset-btn" onclick="resetStats()">🔄 Сбросить статистику</button>
+    </div>
+
+    <div class="chest-modal" id="chestModal">
+        <div class="chest-content">
+            <div class="chest-icon" id="chestIcon">📦</div>
+            <h2>Поздравляю! Ты заработала сундук!</h2>
+            <button class="open-chest-btn" onclick="openChest()">Открыть сундук! ✨</button>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <script>
+        let currentDifficulty = null;
+        let currentQuestion = null;
+        let currentAnswer = null;
+        let correctCount = 0;
+        let totalCount = 0;
+        let currentStreak = 0;
+        let progressCount = 0;
+        
+        // Динамическая сложность (Авто)
+        let dynamicLevel = 0; // растёт каждые 5 примеров
+        let examplesInCurrentLevel = 0;
+
+        const animals = ['🐶', '🐱', '🐰', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵', '🦊', '🦝', '🐴', '🦄', '🐷', '🐮', '🐭', '🐹', '🐿️', '🦔'];
+        
+        // Загрузка данных
+        function loadData() {
+            const saved = localStorage.getItem('aliceAnimals');
+            if (saved) {
+                const animals = JSON.parse(saved);
+                displayAnimals(animals);
+            }
+            
+            const stats = localStorage.getItem('aliceStats');
+            if (stats) {
+                const parsedStats = JSON.parse(stats);
+                correctCount = parsedStats.correct || 0;
+                totalCount = parsedStats.total || 0;
+                updateStats();
+            }
+        }
+
+        function isGameActive() { return currentDifficulty !== null; }
+
+
+        function saveAnimals(animalsList) {
+            localStorage.setItem('aliceAnimals', JSON.stringify(animalsList));
+        }
+
+        function saveStats() {
+            localStorage.setItem('aliceStats', JSON.stringify({
+                correct: correctCount,
+                total: totalCount
+            }));
+        }
+
+        function setDifficulty(level) {
+            currentDifficulty = level;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const clicked = document.querySelector(`.difficulty-btn.${level}`);
+            if (clicked) clicked.classList.add('active');
+            
+            // Активируем игру
+           
+            
+            
+            // Сброс параметров авто-сложности при выборе режима
+            if (level === 'auto') {
+                dynamicLevel = 0;
+                examplesInCurrentLevel = 0;
+            }
+            
+            generateQuestion();
+            document.getElementById('answerInput').disabled = false;
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function chooseOperationByWeights(weights) {
+            // weights: { '+': number, '-': number, '×': number, '÷': number }
+            const entries = Object.entries(weights).filter(([_, w]) => w > 0);
+            const total = entries.reduce((s, [_, w]) => s + w, 0);
+            let r = Math.random() * total;
+            for (const [op, w] of entries) {
+                if ((r -= w) <= 0) return op;
+            }
+            return entries.length ? entries[0][0] : '+';
+        }
+
+        function generateQuestion() {
+            let num1, num2, operation, answer;
+            
+            switch(currentDifficulty) {
+                case 'auto': {
+                    const level = dynamicLevel;
+                    // Плавное распределение операций
+                    const weightAdd = Math.max(0.2, 1.2 - 0.08 * level);
+                    const weightSub = level >= 1 ? Math.min(0.9, 0.12 * level) : 0;
+                    const weightMul = level >= 3 ? Math.min(0.8, 0.10 * (level - 2)) : 0;
+                    const weightDiv = level >= 5 ? Math.min(0.6, 0.08 * (level - 4)) : 0;
+                    operation = chooseOperationByWeights({ '+': weightAdd, '-': weightSub, '×': weightMul, '÷': weightDiv });
+
+                    // Плавный рост диапазонов чисел
+                    const addMax = Math.min(100, 5 + level * 3);
+                    const subMax = Math.min(100, 5 + level * 3);
+                    const mulMaxA = Math.min(12, 3 + Math.floor(level / 1.2));
+                    const mulMaxB = Math.min(12, 3 + Math.floor(level / 1.4));
+                    const divMaxD = Math.min(12, 3 + Math.floor(level / 1.6));
+                    const divMaxQ = Math.min(12, 3 + Math.floor(level / 1.3));
+
+                    if (operation === '+') {
+                        num1 = randomInt(1, addMax);
+                        num2 = randomInt(1, addMax);
+                    } else if (operation === '-') {
+                        num1 = randomInt(1, subMax);
+                        num2 = randomInt(1, subMax);
+                        if (num2 > num1) [num1, num2] = [num2, num1];
+                    } else if (operation === '×') {
+                        num1 = randomInt(2, Math.max(2, mulMaxA));
+                        num2 = randomInt(2, Math.max(2, mulMaxB));
+                    } else if (operation === '÷') {
+                        const divisor = randomInt(2, Math.max(2, divMaxD));
+                        const quotient = randomInt(2, Math.max(2, divMaxQ));
+                        num2 = divisor;
+                        answer = quotient;
+                        num1 = divisor * quotient;
+                    }
+                    break;
+                }
+                case 'easy':
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operation = Math.random() > 0.5 ? '+' : '-';
+                    if (operation === '-' && num2 > num1) {
+                        [num1, num2] = [num2, num1];
+                    }
+                    break;
+                    
+                case 'medium':
+                    // Складываем и вычитаем двухзначные числа (10-99), сумма не больше 99
+                    operation = Math.random() < 0.5 ? '+' : '-';
+                    if (operation === '+') {
+                        num1 = randomInt(10, 89); // чтобы всегда был доступен второй слагаемый >=10
+                        num2 = randomInt(10, 99 - num1);
+                    } else {
+                        num1 = randomInt(10, 99);
+                        num2 = randomInt(10, 99);
+                        if (num2 > num1) {
+                            [num1, num2] = [num2, num1];
+                        }
+                    }
+                    break;
+                    
+                case 'hard':
+                    // Умножаем числа до 10
+                    operation = '×';
+                    num1 = randomInt(2, 10);
+                    num2 = randomInt(2, 10);
+                    break;
+            }
+            
+            currentQuestion = `${num1} ${operation} ${num2}`;
+            
+            switch(operation) {
+                case '+': currentAnswer = num1 + num2; break;
+                case '-': currentAnswer = num1 - num2; break;
+                case '×': currentAnswer = num1 * num2; break;
+                case '÷': currentAnswer = num1 / num2; break;
+            }
+            
+            document.getElementById('question').textContent = currentQuestion + ' = ?';
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+        }
+
+        function checkAnswer() {
+
+            
+            if (!isGameActive()) {
+    showFeedback('Сначала выбери уровень 🔽', false);
+    return;
+  }
+  const userAnswer = parseInt(document.getElementById('answerInput').value);
+            
+            if (isNaN(userAnswer)) {
+                showFeedback('🤔', false);
+                return;
+            }
+            
+            totalCount++;
+            
+            // Рост сложности каждые 5 примеров в авто-режиме
+            if (currentDifficulty === 'auto') {
+                examplesInCurrentLevel++;
+                if (examplesInCurrentLevel >= 5) {
+                    examplesInCurrentLevel = 0;
+                    dynamicLevel++;
+                }
+            }
+            
+            if (userAnswer === currentAnswer) {
+                correctCount++;
+                currentStreak++;
+                progressCount++;
+                showFeedback('👍', true);
+                updateStars();
+                
+                if (progressCount >= 10) {
+                    progressCount = 0;
+                    showChest();
+                }
+            } else {
+                currentStreak = 0;
+                progressCount = 0;
+                showFeedback('😢', false);
+                resetStars();
+            }
+            
+            updateProgress();
+            updateStats();
+            saveStats();
+            
+            setTimeout(() => {
+                generateQuestion();
+            }, 1500);
+        }
+
+        function showFeedback(emoji, isCorrect) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = emoji;
+            feedback.style.animation = 'none';
+            setTimeout(() => {
+                feedback.style.animation = 'feedbackPop 1s ease';
+            }, 10);
+            
+            if (isCorrect) {
+                document.getElementById('answerInput').style.borderColor = '#10b981';
+            } else {
+                document.getElementById('answerInput').style.borderColor = '#ef4444';
+            }
+            
+            setTimeout(() => {
+                document.getElementById('answerInput').style.borderColor = '#e5e7eb';
+            }, 1000);
+        }
+
+        function updateProgress() {
+            const fill = document.getElementById('progressFill');
+            fill.style.width = (progressCount * 10) + '%';
+            fill.textContent = progressCount + '/10';
+        }
+
+        function updateStars() {
+            const stars = document.querySelectorAll('.star');
+            const filledStars = Math.min(Math.floor(progressCount / 2), 5);
+            for (let i = 0; i < filledStars; i++) {
+                stars[i].classList.add('filled');
+            }
+        }
+
+        function resetStars() {
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('filled');
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('streakCount').textContent = currentStreak;
+        }
+
+        function showChest() {
+            document.getElementById('chestModal').style.display = 'flex';
+        }
+
+        function openChest() {
+            const chestIcon = document.getElementById('chestIcon');
+            chestIcon.textContent = '✨';
+            
+            setTimeout(() => {
+                const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+                chestIcon.textContent = randomAnimal;
+                chestIcon.className = 'animal-reward';
+                
+                // Сохраняем животное
+                let savedAnimals = localStorage.getItem('aliceAnimals');
+                savedAnimals = savedAnimals ? JSON.parse(savedAnimals) : [];
+                savedAnimals.push(randomAnimal);
+                saveAnimals(savedAnimals);
+                displayAnimals(savedAnimals);
+                
+                setTimeout(() => {
+                    document.getElementById('chestModal').style.display = 'none';
+                    chestIcon.className = 'chest-icon';
+                    chestIcon.textContent = '📦';
+                    resetStars();
+                }, 2000);
+            }, 500);
+        }
+
+        function displayAnimals(animalsList) {
+            const grid = document.getElementById('animalsGrid');
+            grid.innerHTML = '';
+            animalsList.forEach((animal, index) => {
+                const div = document.createElement('div');
+                div.className = 'animal-item';
+                div.textContent = animal;
+                div.style.animationDelay = (index * 0.2) + 's';
+                grid.appendChild(div);
+            });
+        }
+
+        function resetStats() {
+            if (confirm('Сбросить статистику и удалить всех зверушек из коллекции? 🐾')) {
+                correctCount = 0;
+                totalCount = 0;
+                currentStreak = 0;
+                progressCount = 0;
+                updateStats();
+                updateProgress();
+                resetStars();
+                saveStats();
+                // Очистка коллекции зверушек
+                saveAnimals([]);
+                displayAnimals([]);
+            }
+        }
+
+        // Обработка Enter на десктопе (не трогаем тач, там отдельная логика)
+        (function attachEnterForDesktop(){
+          const input = document.getElementById('answerInput');
+          const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+          if (isTouch) return;
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+          });
+        })();
+
+        // Загружаем данные при старте
+        loadData();
+
+        // Санитизация ввода: оставляем только цифры
+        (function sanitizeNumericInput(){
+          const input = document.getElementById('answerInput');
+          input.addEventListener('input', () => {
+            input.value = (input.value || '').replace(/\D+/g, '');
+          });
+        })();
+
+        // ——— Настроим кастомную цифровую клавиатуру ———
+(function setupNumpad() {
+  const input = document.getElementById('answerInput');
+  const pad   = document.getElementById('numpad');
+
+  // показывать/прятать
+  function showPad() {
+    pad.classList.remove('hidden');
+    pad.setAttribute('aria-hidden', 'false');
+  }
+  function hidePad() {
+    pad.classList.add('hidden');
+    pad.setAttribute('aria-hidden', 'true');
+  }
+
+  // на тач-устройствах блокируем системную клаву через readonly
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (isTouch) {
+    input.setAttribute('readonly', 'readonly');
+    input.setAttribute('inputmode', 'none');
+  }
+
+  // при фокусе — показываем
+  input.addEventListener('focus', showPad);
+  // клик вне клавиатуры и поля — скрыть
+  document.addEventListener('pointerdown', (e) => {
+    if (!pad.contains(e.target) && e.target !== input) hidePad();
+  });
+
+  // обработка кнопок
+  pad.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+
+    const key = e.target.getAttribute('data-key');
+    const action = e.target.getAttribute('data-action');
+
+    if (key !== null) {
+      input.value = (input.value || '') + key;
+      input.dispatchEvent(new Event('input', { bubbles: true })); // если где-то слушаешь input
+      return;
+    }
+
+    if (action === 'back') {
+      input.value = input.value.slice(0, -1);
+      return;
+    }
+    if (action === 'clear') {
+      input.value = '';
+      return;
+    }
+    if (action === 'ok') {
+      // триггерим твою проверку
+      checkAnswer();
+      hidePad();
+      return;
+    }
+  });
+
+  // Разрешим физическую клавиатуру/ПК: цифры, Backspace, Enter
+  input.addEventListener('keydown', (e) => {
+    if (isTouch) {
+      // не даём системной клавиатуре лезть (на всякий)
+      e.preventDefault();
+    }
+    if (/\d/.test(e.key)) {
+      input.value += e.key;
+    } else if (e.key === 'Backspace') {
+      input.value = input.value.slice(0, -1);
+    } else if (e.key === 'Enter') {
+      checkAnswer(); hidePad();
+    }
+  });
+})();
+
+
+    </script>
+</body>
+</html>
