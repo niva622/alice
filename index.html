@@ -438,6 +438,10 @@
                 <div class="stat-value" id="correctCount">0</div>
             </div>
             <div class="stat-box">
+                <div class="stat-label">Неправильно</div>
+                <div class="stat-value" id="wrongCount">0</div>
+            </div>
+            <div class="stat-box">
                 <div class="stat-label">Всего</div>
                 <div class="stat-value" id="totalCount">0</div>
             </div>
@@ -469,6 +473,7 @@
         let currentQuestion = null;
         let currentAnswer = null;
         let correctCount = 0;
+        let wrongCount = 0;
         let totalCount = 0;
         let currentStreak = 0;
         let progressCount = 0;
@@ -492,6 +497,7 @@
                 const parsedStats = JSON.parse(stats);
                 correctCount = parsedStats.correct || 0;
                 totalCount = parsedStats.total || 0;
+                wrongCount = parsedStats.wrong ?? (totalCount - correctCount);
                 updateStats();
             }
         }
@@ -506,6 +512,7 @@
         function saveStats() {
             localStorage.setItem('aliceStats', JSON.stringify({
                 correct: correctCount,
+                wrong: wrongCount,
                 total: totalCount
             }));
         }
@@ -676,6 +683,7 @@
                     showChest();
                 }
             } else {
+                wrongCount++;
                 currentStreak = 0;
                 progressCount = 0;
                 showFeedback('😢', false);
@@ -732,6 +740,7 @@
 
         function updateStats() {
             document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('wrongCount').textContent = wrongCount;
             document.getElementById('totalCount').textContent = totalCount;
             document.getElementById('streakCount').textContent = currentStreak;
         }
@@ -780,6 +789,7 @@
         function resetStats() {
             if (confirm('Сбросить статистику и удалить всех зверушек из коллекции? 🐾')) {
                 correctCount = 0;
+                wrongCount = 0;
                 totalCount = 0;
                 currentStreak = 0;
                 progressCount = 0;
