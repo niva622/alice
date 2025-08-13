@@ -52,6 +52,17 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
+        .subject-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mode-math { background: #60a5fa; color: white; }
+        .mode-russian { background: #34d399; color: white; }
+
         .difficulty-selector {
             display: flex;
             gap: 15px;
@@ -143,6 +154,15 @@
             margin: 30px 0;
             color: #1f2937;
             font-weight: bold;
+        }
+
+        .word-image {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            background: #f3f4f6;
+            border-radius: 15px;
+            display: none;
         }
 
         .answer-input {
@@ -376,8 +396,13 @@
         <div class="welcome">Привет, Алиса! Давай учиться весело! 🦄</div>
     </div>
 
+    <div class="subject-selector">
+        <button class="difficulty-btn mode-btn mode-math active" onclick="setMode('math')">➕ Математика</button>
+        <button class="difficulty-btn mode-btn mode-russian" onclick="setMode('russian')">🔤 Русский</button>
+    </div>
+
     <div class="difficulty-selector">
-        <button class="difficulty-btn auto" onclick="setDifficulty('auto')">🤖 Авто</button>
+        <button class="difficulty-btn auto" id="autoBtn" onclick="setDifficulty('auto')">🤖 Авто</button>
         <button class="difficulty-btn easy" onclick="setDifficulty('easy')">🌱 Легко</button>
         <button class="difficulty-btn medium" onclick="setDifficulty('medium')">🌻 Средне</button>
         <button class="difficulty-btn hard" onclick="setDifficulty('hard')">🔥 Сложно</button>
@@ -396,11 +421,13 @@
             <span class="star">⭐</span>
         </div>
 
+        <div class="word-image" id="wordImage"></div>
+
         <div class="question" id="question">Выбери уровень сложности!</div>
+
+
         
-    
-        
-<!-- поле ответа: отключим системную клаву на тач-устройствах -->
+        <!-- поле ответа: отключим системную клаву на тач-устройствах -->
 <input
   type="text"
   class="answer-input"
@@ -477,12 +504,72 @@
         let totalCount = 0;
         let currentStreak = 0;
         let progressCount = 0;
+        let currentMode = 'math';
         
         // Динамическая сложность (Авто)
         let dynamicLevel = 0; // растёт каждые 5 примеров
         let examplesInCurrentLevel = 0;
 
         const animals = ['🐶', '🐱', '🐰', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵', '🦊', '🦝', '🐴', '🦄', '🐷', '🐮', '🐭', '🐹', '🐿️', '🦔'];
+
+        const russianWords = {
+            easy: [
+                { word:"мама", miss:1 },
+                { word:"нос", miss:1 },
+                { word:"рыба", miss:2 },
+                { word:"каша", miss:1 },
+                { word:"вода", miss:1 },
+                { word:"домик", miss:2 },
+                { word:"почта", miss:2 },
+                { word:"книга", miss:2 },
+                { word:"котик", miss:1 },
+                { word:"яблоко", miss:2 },
+                { word:"утро", miss:1 },
+                { word:"земля", miss:2 },
+                { word:"окно", miss:1 },
+                { word:"повар", miss:2 },
+                { word:"поле", miss:2 },
+                { word:"сердце", miss:3 },
+                { word:"радуга", miss:2 },
+                { word:"берёза", miss:2 },
+                { word:"школа", miss:2 },
+                { word:"печка", miss:2 }
+            ],
+            medium: [
+                { word:"абрикос", miss:3 },
+                { word:"кастрюля", miss:3 },
+                { word:"библиотека", miss:4 },
+                { word:"карусель", miss:3 },
+                { word:"путешествие", miss:6 },
+                { word:"инженер", miss:3 },
+                { word:"поведение", miss:4 },
+                { word:"территория", miss:4 },
+                { word:"инструмент", miss:4 },
+                { word:"кораблик", miss:3 },
+                { word:"самолёт", miss:3 },
+                { word:"батарея", miss:3 },
+                { word:"расписание", miss:4 },
+                { word:"приключение", miss:4 },
+                { word:"благодарность", miss:5 }
+            ],
+            hard: [
+                { word:"чувствительность", miss:5 },
+                { word:"изобретательство", miss:4 },
+                { word:"неисчерпаемый", miss:4 },
+                { word:"сверхпроводимость", miss:5 },
+                { word:"художественность", miss:6 },
+                { word:"производительность", miss:5 },
+                { word:"законодательство", miss:4 },
+                { word:"многофункциональный", miss:5 },
+                { word:"кристаллический", miss:6 },
+                { word:"энергетический", miss:4 },
+                { word:"разочарование", miss:3 },
+                { word:"водоснабжение", miss:4 },
+                { word:"электромагнитный", miss:5 },
+                { word:"межконтинентальный", miss:4 },
+                { word:"гастроэнтерология", miss:5 }
+            ]
+        };
         
         // Загрузка данных
         function loadData() {
@@ -515,6 +602,43 @@
                 wrong: wrongCount,
                 total: totalCount
             }));
+        }
+
+        function configureInputForMode() {
+            const input = document.getElementById('answerInput');
+            const pad = document.getElementById('numpad');
+            const wordImage = document.getElementById('wordImage');
+            if (currentMode === 'math') {
+                const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                if (isTouch) {
+                    input.setAttribute('readonly', 'readonly');
+                    input.setAttribute('inputmode', 'none');
+                }
+                pad.classList.add('hidden');
+                wordImage.style.display = 'none';
+            } else {
+                input.removeAttribute('readonly');
+                input.setAttribute('inputmode', 'text');
+                pad.classList.add('hidden');
+                wordImage.style.display = 'block';
+            }
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.querySelector(`.mode-${mode}`);
+            if (btn) btn.classList.add('active');
+
+            document.getElementById('autoBtn').style.display = mode === 'math' ? 'inline-block' : 'none';
+
+            currentDifficulty = null;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('question').textContent = 'Выбери уровень сложности!';
+            document.getElementById('answerInput').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('answerInput').value = '';
+            configureInputForMode();
         }
 
         function setDifficulty(level) {
@@ -561,8 +685,22 @@
         }
 
         function generateQuestion() {
+            const questionElement = document.getElementById('question');
+            const input = document.getElementById('answerInput');
+            input.value = '';
+
+            if (currentMode === 'russian') {
+                const list = russianWords[currentDifficulty] || russianWords.easy;
+                const item = list[Math.floor(Math.random() * list.length)];
+                const missIndex = item.miss - 1;
+                currentAnswer = item.word[missIndex];
+                const display = item.word.slice(0, missIndex) + '_' + item.word.slice(missIndex + 1);
+                questionElement.textContent = display;
+                return;
+            }
+
             let num1, num2, operation, answer;
-            
+
             switch(currentDifficulty) {
                 case 'auto': {
                     const level = dynamicLevel;
@@ -641,43 +779,52 @@
                 case '÷': currentAnswer = num1 / num2; break;
             }
             
-            document.getElementById('question').textContent = currentQuestion + ' = ?';
-            document.getElementById('answerInput').value = '';
-            document.getElementById('answerInput').focus();
+            questionElement.textContent = currentQuestion + ' = ?';
+            input.value = '';
+            input.focus();
         }
 
         function checkAnswer() {
-
-            
             if (!isGameActive()) {
-    showFeedback('Сначала выбери уровень 🔽', false);
-    return;
-  }
-  const userAnswer = parseInt(document.getElementById('answerInput').value);
-            
-            if (isNaN(userAnswer)) {
-                showFeedback('🤔', false);
+                showFeedback('Сначала выбери уровень 🔽', false);
                 return;
             }
-            
+
+            const raw = document.getElementById('answerInput').value.trim();
+            let isCorrect = false;
+
+            if (currentMode === 'math') {
+                const userAnswer = parseInt(raw);
+                if (isNaN(userAnswer)) {
+                    showFeedback('🤔', false);
+                    return;
+                }
+                isCorrect = userAnswer === currentAnswer;
+            } else {
+                if (!raw || raw.length !== 1) {
+                    showFeedback('🤔', false);
+                    return;
+                }
+                isCorrect = raw.toLowerCase() === currentAnswer.toLowerCase();
+            }
+
             totalCount++;
-            
-            // Рост сложности каждые 5 примеров в авто-режиме
-            if (currentDifficulty === 'auto') {
+
+            if (currentMode === 'math' && currentDifficulty === 'auto') {
                 examplesInCurrentLevel++;
                 if (examplesInCurrentLevel >= 5) {
                     examplesInCurrentLevel = 0;
                     dynamicLevel++;
                 }
             }
-            
-            if (userAnswer === currentAnswer) {
+
+            if (isCorrect) {
                 correctCount++;
                 currentStreak++;
                 progressCount++;
                 showFeedback('👍', true);
                 updateStars();
-                
+
                 if (progressCount >= 10) {
                     progressCount = 0;
                     showChest();
@@ -689,11 +836,11 @@
                 showFeedback('😢', false);
                 resetStars();
             }
-            
+
             updateProgress();
             updateStats();
             saveStats();
-            
+
             setTimeout(() => {
                 generateQuestion();
             }, 1500);
@@ -815,12 +962,15 @@
 
         // Загружаем данные при старте
         loadData();
+        configureInputForMode();
 
         // Санитизация ввода: оставляем только цифры
         (function sanitizeNumericInput(){
           const input = document.getElementById('answerInput');
           input.addEventListener('input', () => {
-            input.value = (input.value || '').replace(/\D+/g, '');
+            if (currentMode === 'math') {
+              input.value = (input.value || '').replace(/\D+/g, '');
+            }
           });
         })();
 
@@ -831,6 +981,7 @@
 
   // показывать/прятать
   function showPad() {
+    if (currentMode !== 'math') return;
     pad.classList.remove('hidden');
     pad.setAttribute('aria-hidden', 'false');
   }
@@ -839,12 +990,7 @@
     pad.setAttribute('aria-hidden', 'true');
   }
 
-  // на тач-устройствах блокируем системную клаву через readonly
   const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  if (isTouch) {
-    input.setAttribute('readonly', 'readonly');
-    input.setAttribute('inputmode', 'none');
-  }
 
   // при фокусе — показываем
   input.addEventListener('focus', showPad);
@@ -855,7 +1001,7 @@
 
   // обработка кнопок
   pad.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'BUTTON') return;
+    if (currentMode !== 'math' || e.target.tagName !== 'BUTTON') return;
 
     const key = e.target.getAttribute('data-key');
     const action = e.target.getAttribute('data-action');
@@ -884,8 +1030,8 @@
 
   // Разрешим физическую клавиатуру/ПК: цифры, Backspace, Enter
   input.addEventListener('keydown', (e) => {
+    if (currentMode !== 'math') return;
     if (isTouch) {
-      // не даём системной клавиатуре лезть (на всякий)
       e.preventDefault();
     }
     if (/\d/.test(e.key)) {
